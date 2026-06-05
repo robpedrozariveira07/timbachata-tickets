@@ -276,7 +276,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" crossorigin="anonymous"></script>
+<!-- QR Code generator embebido (qrcode-generator by Kazuhiko Arase, MIT license) -->
+<script>
+var qrcode;(function(){var b=function(a,c){var d=r(a,c);var e=d.getModuleCount();var f=document.createElement("canvas");f.width=e;f.height=e;var g=f.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,e,e);g.fillStyle="#000";for(var h=0;h<e;h++){for(var i=0;i<e;i++){if(d.isDark(h,i)){g.fillRect(i,h,1,1)}}}return f};var r=function(a,c){var qr=qrcode(a,c);qr.make();return qr};window.QRCanvas=b})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -510,26 +514,41 @@ function clearAll() {
 }
 
 // ═══════════════════════════════════════════════
-// GENERAR QR DATA URL
+// GENERAR QR DATA URL — usando qrcodejs (cdnjs)
 // ═══════════════════════════════════════════════
 async function makeQRDataURL(text) {
-  // Intentar con librería qrcode (jsdelivr)
-  if (typeof QRCode !== 'undefined' && typeof QRCode.toDataURL === 'function') {
-    return new Promise((resolve) => {
-      QRCode.toDataURL(text, { width: 256, margin: 1, errorCorrectionLevel: 'M' }, (err, url) => {
-        resolve(err ? null : url);
-      });
-    });
-  }
-  // Fallback: canvas manual con texto
   return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 200; canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,200,200);
-    ctx.fillStyle = '#000000'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
-    ctx.fillText('QR: ' + text.slice(-20), 100, 100);
-    resolve(canvas.toDataURL('image/png'));
+    try {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
+      document.body.appendChild(wrapper);
+
+      new QRCode(wrapper, {
+        text:         text,
+        width:        256,
+        height:       256,
+        colorDark:    '#000000',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // QRCode.js puede tardar un frame en dibujar
+      setTimeout(() => {
+        const canvas = wrapper.querySelector('canvas');
+        const img    = wrapper.querySelector('img');
+        let url = null;
+        if (canvas) {
+          url = canvas.toDataURL('image/png');
+        } else if (img && img.src && img.src.startsWith('data:')) {
+          url = img.src;
+        }
+        document.body.removeChild(wrapper);
+        resolve(url);
+      }, 300);
+    } catch(e) {
+      console.error('QR error:', e);
+      resolve(null);
+    }
   });
 }
 
