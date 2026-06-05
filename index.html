@@ -841,3 +841,25 @@ function handleScan(raw) {
   const entry = { id: att.id, name: att.name, time: att.checkInTime };
   recentScans.unshift(entry); save();
   rEl.classList.add('valid');
+  icon.textContent = '✅'; name.textContent = att.name;
+  msg.textContent  = '¡Bienvenido/a! — Ticket #' + att.ticketNum;
+  vibrate();
+  renderRecent();
+}
+
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+load();
+if (attendees.length) {
+  document.getElementById('count-num').textContent = attendees.length;
+  document.getElementById('load-result').style.display = 'block';
+}
+renderList();
+</script>
+</body>
+</html>
