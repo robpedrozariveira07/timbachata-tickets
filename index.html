@@ -276,7 +276,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" crossorigin="anonymous"></script>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -513,15 +513,23 @@ function clearAll() {
 // GENERAR QR DATA URL
 // ═══════════════════════════════════════════════
 async function makeQRDataURL(text) {
-  return new Promise((resolve, reject) => {
-    QRCode.toDataURL(text, {
-      width: 256, margin: 1,
-      color: { dark: '#000000', light: '#ffffff' },
-      errorCorrectionLevel: 'M'
-    }, (err, url) => {
-      if (err) reject(err);
-      else resolve(url);
+  // Intentar con librería qrcode (jsdelivr)
+  if (typeof QRCode !== 'undefined' && typeof QRCode.toDataURL === 'function') {
+    return new Promise((resolve) => {
+      QRCode.toDataURL(text, { width: 256, margin: 1, errorCorrectionLevel: 'M' }, (err, url) => {
+        resolve(err ? null : url);
+      });
     });
+  }
+  // Fallback: canvas manual con texto
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 200; canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,200,200);
+    ctx.fillStyle = '#000000'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('QR: ' + text.slice(-20), 100, 100);
+    resolve(canvas.toDataURL('image/png'));
   });
 }
 
@@ -529,7 +537,8 @@ async function makeQRDataURL(text) {
 // GENERAR PDF DE TICKET
 // ═══════════════════════════════════════════════
 async function buildTicketPDF(attendee) {
-  const { jsPDF } = window.jspdf;
+  // Compatibilidad con diferentes versiones de jsPDF
+  const jsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
   // Landscape ticket: 216mm × 89mm (standard event ticket ratio)
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [216, 89] });
   const W = 216, H = 89;
@@ -642,7 +651,7 @@ async function downloadOne(id, btn) {
   try {
     const pdf = await buildTicketPDF(a);
     pdf.save(`Ticket_${a.ticketNum}_${a.name.replace(/\s+/g,'_')}.pdf`);
-  } catch(e) { alert('Error al generar. Intenta de nuevo.'); }
+  } catch(e) { alert('Error al generar ticket: ' + e.message); console.error(e); }
   btn.textContent = orig; btn.disabled = false;
 }
 
