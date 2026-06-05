@@ -276,6 +276,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <script>
 // ═══════════════════════════════════════════════
@@ -511,34 +512,16 @@ function clearAll() {
 // ═══════════════════════════════════════════════
 // GENERAR QR DATA URL
 // ═══════════════════════════════════════════════
-function loadQRLib() {
-  return new Promise((res, rej) => {
-    if (typeof QRCode !== 'undefined') { res(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-    s.onload = () => { qrLibReady = true; res(); };
-    s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
-
 async function makeQRDataURL(text) {
-  await loadQRLib();
-  return new Promise(res => {
-    const div = document.createElement('div');
-    div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
-    document.body.appendChild(div);
-    new QRCode(div, {
-      text, width: 256, height: 256,
-      colorDark: '#000000', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
+  return new Promise((resolve, reject) => {
+    QRCode.toDataURL(text, {
+      width: 256, margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+      errorCorrectionLevel: 'M'
+    }, (err, url) => {
+      if (err) reject(err);
+      else resolve(url);
     });
-    setTimeout(() => {
-      const canvas = div.querySelector('canvas');
-      const img    = div.querySelector('img');
-      res(canvas ? canvas.toDataURL('image/png') : (img ? img.src : null));
-      document.body.removeChild(div);
-    }, 200);
   });
 }
 
