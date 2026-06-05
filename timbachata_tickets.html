@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timbachata Mundialista · Tickets</title>
+  <style>
+    :root {
+      --green: #1a5c2a; --green2: #22763a; --red: #c0392b; --red2: #e74c3c;
+      --bg: #0d1117; --bg2: #161b22; --bg3: #1c2128;
+      --border: #30363d; --muted: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: #fff; min-height: 100vh; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #0d2b14 0%, #0d1117 60%);
+      border-bottom: 3px solid var(--red);
+      padding: 16px 20px 14px;
+      text-align: center;
+    }
+    .header h1 { font-size: 1.6em; letter-spacing: 2px; line-height: 1.2; }
+    .header h1 .r { color: var(--red); }
+    .header p { color: var(--muted); font-size: 0.78em; margin-top: 4px; }
+
+    /* TABS */
+    .tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+    .tab { flex: 1; padding: 13px 6px; text-align: center; cursor: pointer; font-size: 0.8em; color: var(--muted); border-bottom: 3px solid transparent; transition: all .2s; user-select: none; }
+    .tab.active { color: #fff; border-bottom-color: var(--red); background: var(--bg3); }
+    .tab:hover:not(.active) { background: var(--bg3); color: #ccc; }
+
+    /* PAGES */
+    .page { display: none; padding: 16px; max-width: 760px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* CARDS / BOXES */
+    .info-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 0.82em; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+    .info-box strong { color: #ddd; }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 36px 16px;
+      text-align: center; cursor: pointer; transition: all .2s; background: var(--bg2); margin-bottom: 14px;
+    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--bg3); }
+    .upload-zone .icon { font-size: 2.8em; margin-bottom: 8px; }
+    .upload-zone p { color: var(--muted); font-size: 0.85em; }
+    .upload-zone p strong { color: #ddd; }
+    #file-input { display: none; }
+
+    /* DIVIDER */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 14px 0; color: var(--muted); font-size: 0.8em; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* INPUTS */
+    textarea, input[type=text] {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+      color: #fff; padding: 10px 12px; font-size: 0.88em; font-family: inherit;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    input[type=text]:focus, textarea:focus { outline: none; border-color: var(--green); }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.88em; font-weight: 600; transition: all .2s; font-family: inherit; }
+    .btn-green { background: var(--green); color: #fff; width: 100%; justify-content: center; margin-top: 10px; }
+    .btn-green:hover { background: var(--green2); }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { background: var(--red2); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: #ccc; font-size: 0.78em; padding: 6px 11px; }
+    .btn-outline:hover { background: var(--bg3); }
+    .btn-full { width: 100%; justify-content: center; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* COUNTER BOX */
+    .counter-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; margin: 14px 0; }
+    .counter-box .num { font-size: 2.4em; font-weight: 700; color: var(--green); }
+    .counter-box p { color: var(--muted); font-size: 0.82em; }
+
+    /* STATS ROW */
+    .stats-row { display: flex; gap: 10px; margin-bottom: 14px; }
+    .stat-card { flex: 1; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 8px; text-align: center; }
+    .stat-card .num { font-size: 1.7em; font-weight: 700; }
+    .stat-card .lbl { color: var(--muted); font-size: 0.7em; margin-top: 2px; }
+    .stat-card.g .num { color: var(--green); }
+    .stat-card.r .num { color: var(--red); }
+    .stat-card.w .num { color: #fff; }
+
+    /* PROGRESS */
+    .progress-wrap { display: none; margin-bottom: 12px; }
+    .progress-wrap p { font-size: 0.78em; color: var(--muted); margin-bottom: 4px; }
+    .progress { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--green), var(--green2)); transition: width .3s; width: 0%; }
+
+    /* SEARCH */
+    .search-wrap { margin-bottom: 10px; }
+
+    /* ATTENDEE LIST */
+    .attendee-list { display: flex; flex-direction: column; gap: 7px; }
+    .attendee-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: border-color .2s; }
+    .attendee-card.in { border-color: var(--green); background: #0d1f12; }
+    .a-info { flex: 1; min-width: 0; }
+    .a-name { font-weight: 600; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .a-meta { color: var(--muted); font-size: 0.72em; margin-top: 2px; }
+    .a-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+    .badge { font-size: 0.68em; padding: 3px 8px; border-radius: 20px; font-weight: 700; }
+    .badge-ok { background: var(--green); color: #fff; }
+    .badge-pend { background: var(--border); color: var(--muted); }
+
+    /* ACTIONS ROW */
+    .actions-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .actions-row .btn { flex: 1; justify-content: center; }
+
+    /* SCANNER */
+    .scanner-wrap { max-width: 420px; margin: 0 auto; }
+    .cam-box { position: relative; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 1; }
+    #qr-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    #qr-canvas { display: none; }
+    .scan-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+    .scan-frame { width: 58%; aspect-ratio: 1; border: 3px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.45); }
+    .scan-line { position: absolute; left: 21%; right: 21%; height: 2px; background: var(--red); animation: scanAnim 2s ease-in-out infinite; border-radius: 2px; }
+    @keyframes scanAnim { 0%,100%{top:21%} 50%{top:79%} }
+
+    /* SCAN RESULT */
+    .scan-result { border-radius: 12px; padding: 18px; text-align: center; margin-top: 14px; display: none; }
+    .scan-result.show { display: block; }
+    .scan-result.valid   { background: #0a1f0d; border: 2px solid #22763a; }
+    .scan-result.dup     { background: #1f1a0a; border: 2px solid #f39c12; }
+    .scan-result.invalid { background: #1f0a0a; border: 2px solid var(--red); }
+    .scan-result .s-icon { font-size: 2.8em; }
+    .scan-result .s-name { font-size: 1.2em; font-weight: 700; margin-top: 6px; }
+    .scan-result .s-msg  { color: var(--muted); font-size: 0.82em; margin-top: 4px; }
+
+    /* RECENT SCANS */
+    .recent-section { margin-top: 18px; }
+    .recent-section h3 { color: var(--muted); font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .recent-item { background: var(--bg2); border-radius: 6px; padding: 9px 12px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; font-size: 0.82em; }
+    .recent-item .ri-time { color: var(--muted); font-size: 0.85em; }
+
+    .start-cam-btn { width: 100%; padding: 18px; background: var(--red); color: #fff; border: none; border-radius: 12px; font-size: 1em; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: inherit; }
+    .start-cam-btn:hover { background: var(--red2); }
+
+    .empty-msg { color: var(--muted); text-align: center; padding: 30px 10px; font-size: 0.88em; }
+
+    /* IMPORT/EXPORT BUTTONS */
+    .io-row { display: flex; gap: 8px; margin-top: 10px; }
+    .io-row .btn { flex: 1; justify-content: center; font-size: 0.78em; }
+
+    @media(max-width:420px){
+      .header h1 { font-size: 1.3em; }
+      .tab { font-size: 0.72em; padding: 11px 4px; }
+      .stats-row .num { font-size: 1.4em; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>TIMBA<span class="r">CHATA</span> Mundialista</h1>
+  <p>🎟️ Sistema de Tickets Digitales &nbsp;·&nbsp; Mambo Café Insurgentes &nbsp;·&nbsp; 11 Jun 2026</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active"   onclick="showTab('upload')">📤 Subir Lista</div>
+  <div class="tab"          onclick="showTab('tickets')">🎟️ Tickets</div>
+  <div class="tab"          onclick="showTab('scanner')">📷 Escáner</div>
+</div>
+
+<!-- ══════════════════ TAB 1: SUBIR LISTA ══════════════════ -->
+<div id="tab-upload" class="page active">
+  <div class="info-box">
+    Sube un archivo <strong>Excel (.xlsx) o CSV</strong> con los nombres de los asistentes (una columna),
+    o escríbelos manualmente (un nombre por línea).
+  </div>
+
+  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📂</div>
+    <p><strong>Haz clic para subir</strong> o arrastra tu archivo aquí</p>
+    <p style="margin-top:5px">Excel · CSV · TXT — una columna con nombres</p>
+  </div>
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv,.txt">
+
+  <div class="divider">o escribe los nombres manualmente</div>
+
+  <textarea id="names-input" placeholder="Juan Pérez&#10;María García&#10;Carlos López&#10;...un nombre por línea"></textarea>
+
+  <button class="btn btn-green" onclick="loadNames()">✅ Cargar Asistentes</button>
+
+  <div id="load-result" style="display:none; margin-top:14px;">
+    <div class="counter-box">
+      <div class="num" id="count-num">0</div>
+      <p>asistentes cargados correctamente</p>
+    </div>
+    <button class="btn btn-green" style="background:var(--red)" onclick="showTab('tickets')">
+      🎟️ Ver y Generar Tickets →
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════ TAB 2: TICKETS ══════════════════ -->
+<div id="tab-tickets" class="page">
+  <div class="stats-row">
+    <div class="stat-card w"><div class="num" id="st-total">0</div><div class="lbl">Total</div></div>
+    <div class="stat-card g"><div class="num" id="st-in">0</div><div class="lbl">Ingresaron</div></div>
+    <div class="stat-card r"><div class="num" id="st-pend">0</div><div class="lbl">Pendientes</div></div>
+  </div>
+
+  <div class="actions-row">
+    <button class="btn btn-red" onclick="downloadAllTickets()">📥 Descargar Todos (ZIP)</button>
+    <button class="btn btn-outline" onclick="exportList()">💾 Exportar Lista</button>
+    <button class="btn btn-outline" onclick="clearAll()">🗑️</button>
+  </div>
+
+  <div class="progress-wrap" id="prog-wrap">
+    <p id="prog-text">Generando...</p>
+    <div class="progress"><div class="progress-bar" id="prog-bar"></div></div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search-box" placeholder="🔍 Buscar asistente..." oninput="renderList()">
+  </div>
+
+  <div class="attendee-list" id="attendee-list">
+    <p class="empty-msg">Aún no hay asistentes. Ve a "Subir Lista" primero.</p>
+  </div>
+</div>
+
+<!-- ══════════════════ TAB 3: ESCÁNER ══════════════════ -->
+<div id="tab-scanner" class="page">
+  <div class="scanner-wrap">
+    <div class="info-box">
+      <strong>📱 Úsalo en tu celular.</strong> Abre este archivo en tu teléfono,
+      ve a la pestaña Escáner e inicia la cámara. Importa la lista de asistentes para
+      registrar entradas y detectar duplicados.
+    </div>
+
+    <div class="io-row" style="margin-bottom:12px;">
+      <button class="btn btn-outline btn-full" onclick="document.getElementById('import-input').click()">📂 Importar Lista</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importList(event)">
+    </div>
+
+    <div id="scan-start-view">
+      <button class="start-cam-btn" onclick="startScanner()">📷 Iniciar Cámara</button>
+    </div>
+
+    <div id="scan-active-view" style="display:none;">
+      <div class="cam-box">
+        <video id="qr-video" playsinline muted autoplay></video>
+        <canvas id="qr-canvas"></canvas>
+        <div class="scan-overlay">
+          <div class="scan-frame"></div>
+          <div class="scan-line"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" style="width:100%;justify-content:center;margin-top:8px;" onclick="stopScanner()">
+        ⏹️ Detener Cámara
+      </button>
+
+      <div class="scan-result" id="scan-result">
+        <div class="s-icon" id="s-icon"></div>
+        <div class="s-name" id="s-name"></div>
+        <div class="s-msg"  id="s-msg"></div>
+      </div>
+
+      <div class="recent-section">
+        <h3>Últimos registros</h3>
+        <div id="recent-list"><p class="empty-msg" style="padding:10px;">Sin registros aún.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTES Y ESTADO
+// ═══════════════════════════════════════════════
+const EVENT_KEY   = 'TIMBACHATA_MUNDIALISTA_2026';
+const STORE_KEY   = 'timba_attendees_v2';
+const SCANNED_KEY = 'timba_scanned_v2';
+
+let attendees  = [];   // [{id, name, ticketNum, checkedIn, checkInTime}]
+let recentScans = [];  // [{id, name, time}] — solo en el dispositivo escáner
+
+let scanStream   = null;
+let scanning     = false;
+let lastScanId   = null;
+let lastScanTime = 0;
+let qrLibReady   = false;
+
+// ═══════════════════════════════════════════════
+// PERSISTENCIA
+// ═══════════════════════════════════════════════
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY,   JSON.stringify(attendees));
+    localStorage.setItem(SCANNED_KEY, JSON.stringify(recentScans));
+  } catch(e) {}
+}
+
+function load() {
+  try {
+    const a = localStorage.getItem(STORE_KEY);   if (a) attendees   = JSON.parse(a);
+    const s = localStorage.getItem(SCANNED_KEY); if (s) recentScans = JSON.parse(s);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════════
+function genId(name, idx) {
+  const str = EVENT_KEY + '|' + idx + '|' + name;
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h.toString(36).toUpperCase().padStart(7, '0');
+}
+
+function qrPayload(a) { return EVENT_KEY + '|' + a.id + '|' + a.name; }
+
+function parseQR(txt) {
+  const p = txt.split('|');
+  if (p.length >= 3 && p[0] === EVENT_KEY) return { ok: true, id: p[1], name: p.slice(2).join('|') };
+  return { ok: false };
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['upload','tickets','scanner'][i] === id);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  if (id === 'tickets') renderList();
+  if (id === 'scanner') renderRecent();
+  if (id !== 'scanner') stopScanner();
+}
+
+// ═══════════════════════════════════════════════
+// CARGAR NOMBRES
+// ═══════════════════════════════════════════════
+function processNames(names) {
+  // Deduplicate while keeping order
+  const seen = new Set();
+  names = names.filter(n => { if (seen.has(n)) return false; seen.add(n); return true; });
+
+  attendees = names.map((name, i) => ({
+    id:         genId(name, i),
+    name:       name,
+    ticketNum:  String(i + 1).padStart(4, '0'),
+    checkedIn:  false,
+    checkInTime: null
+  }));
+  save();
+  document.getElementById('count-num').textContent = attendees.length;
+  document.getElementById('load-result').style.display = 'block';
+  renderList();
+}
+
+function loadNames() {
+  const txt = (document.getElementById('names-input').value || '').trim();
+  const names = txt.split('\n').map(n => n.trim()).filter(Boolean);
+  if (!names.length) { alert('Por favor ingresa al menos un nombre.'); return; }
+  processNames(names);
+}
+
+// ── Archivo ──
+document.getElementById('file-input').addEventListener('change', function(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const data = ev.target.result;
+    let names = [];
+    if (f.name.match(/\.(csv|txt)$/i)) {
+      const text = new TextDecoder().decode(data);
+      names = text.split(/\r?\n/).map(l => l.split(',')[0].replace(/["']/g,'').trim()).filter(Boolean);
+    } else {
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      // Skip header row if it looks like a label
+      const start = (rows[0] && String(rows[0][0]).toLowerCase().includes('nombre')) ? 1 : 0;
+      names = rows.slice(start).map(r => String(r[0] || '').trim()).filter(Boolean);
+    }
+    if (!names.length) { alert('No se encontraron nombres en el archivo.'); return; }
+    document.getElementById('names-input').value = names.join('\n');
+    processNames(names);
+  };
+  r.readAsArrayBuffer(f);
+  this.value = '';
+});
+
+// Drag & drop
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  const fi = document.getElementById('file-input');
+  try { const dt = new DataTransfer(); dt.items.add(f); fi.files = dt.files; } catch(_) {}
+  fi.dispatchEvent(new Event('change'));
+});
+
+// ═══════════════════════════════════════════════
+// EXPORTAR / IMPORTAR LISTA (JSON para compartir entre dispositivos)
+// ═══════════════════════════════════════════════
+function exportList() {
+  if (!attendees.length) { alert('No hay asistentes cargados.'); return; }
+  const json = JSON.stringify({ event: EVENT_KEY, attendees }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'lista_timbachata.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importList(ev) {
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if (!obj.attendees || !Array.isArray(obj.attendees)) throw new Error();
+      // Merge check-in statuses
+      const imported = obj.attendees;
+      // Keep local check-in status when merging
+      const localMap = {};
+      attendees.forEach(a => { localMap[a.id] = a; });
+      attendees = imported.map(a => {
+        const local = localMap[a.id];
+        return local ? { ...a, checkedIn: local.checkedIn, checkInTime: local.checkInTime } : a;
+      });
+      save();
+      alert(`✅ Lista importada: ${attendees.length} asistentes.`);
+      renderRecent();
+    } catch(_) { alert('Archivo no válido. Exporta la lista desde la pestaña Tickets.'); }
+  };
+  r.readAsText(f);
+  ev.target.value = '';
+}
+
+// ═══════════════════════════════════════════════
+// RENDER LISTA
+// ═══════════════════════════════════════════════
+function renderList() {
+  const q = (document.getElementById('search-box').value || '').toLowerCase();
+  const filtered = attendees.filter(a => a.name.toLowerCase().includes(q));
+  const checked = attendees.filter(a => a.checkedIn).length;
+  document.getElementById('st-total').textContent = attendees.length;
+  document.getElementById('st-in').textContent    = checked;
+  document.getElementById('st-pend').textContent  = attendees.length - checked;
+
+  const el = document.getElementById('attendee-list');
+  if (!filtered.length) {
+    el.innerHTML = `<p class="empty-msg">${attendees.length ? 'Sin resultados.' : 'Aún no hay asistentes. Ve a "Subir Lista".'}</p>`;
+    return;
+  }
+  el.innerHTML = filtered.map(a => `
+    <div class="attendee-card ${a.checkedIn ? 'in' : ''}">
+      <div class="a-info">
+        <div class="a-name">${escHtml(a.name)}</div>
+        <div class="a-meta">Ticket #${a.ticketNum}${a.checkedIn ? ' &nbsp;·&nbsp; Ingresó ' + fmtTime(a.checkInTime) : ''}</div>
+      </div>
+      <div class="a-actions">
+        <span class="badge ${a.checkedIn ? 'badge-ok' : 'badge-pend'}">${a.checkedIn ? '✓ OK' : 'Pendiente'}</span>
+        <button class="btn btn-outline" title="Descargar ticket" onclick="downloadOne('${a.id}', this)">⬇️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderRecent() {
+  const el = document.getElementById('recent-list');
+  if (!recentScans.length) {
+    el.innerHTML = '<p class="empty-msg" style="padding:10px;">Sin registros aún.</p>'; return;
+  }
+  el.innerHTML = recentScans.slice(0, 15).map(s => `
+    <div class="recent-item">
+      <span>${escHtml(s.name)}</span>
+      <span class="ri-time">${fmtTime(s.time)}</span>
+    </div>
+  `).join('');
+}
+
+function clearAll() {
+  if (!confirm('¿Borrar toda la lista de asistentes y registros?')) return;
+  attendees = []; recentScans = []; save(); renderList();
+  document.getElementById('names-input').value = '';
+  document.getElementById('load-result').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// GENERAR QR DATA URL
+// ═══════════════════════════════════════════════
+function loadQRLib() {
+  return new Promise((res, rej) => {
+    if (typeof QRCode !== 'undefined') { res(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    s.onload = () => { qrLibReady = true; res(); };
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function makeQRDataURL(text) {
+  await loadQRLib();
+  return new Promise(res => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
+    document.body.appendChild(div);
+    new QRCode(div, {
+      text, width: 256, height: 256,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    setTimeout(() => {
+      const canvas = div.querySelector('canvas');
+      const img    = div.querySelector('img');
+      res(canvas ? canvas.toDataURL('image/png') : (img ? img.src : null));
+      document.body.removeChild(div);
+    }, 200);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// GENERAR PDF DE TICKET
+// ═══════════════════════════════════════════════
+async function buildTicketPDF(attendee) {
+  const { jsPDF } = window.jspdf;
+  // Landscape ticket: 216mm × 89mm (standard event ticket ratio)
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [216, 89] });
+  const W = 216, H = 89;
+
+  // ── Fondo oscuro ──
+  pdf.setFillColor(13, 17, 23);
+  pdf.rect(0, 0, W, H, 'F');
+
+  // ── Banda superior verde ──
+  pdf.setFillColor(26, 92, 42);
+  pdf.rect(0, 0, W, 7, 'F');
+  pdf.setFillColor(192, 57, 43);
+  pdf.rect(0, 7, W, 3, 'F');
+
+  // ── Banda inferior ──
+  pdf.setFillColor(26, 92, 42);
+  pdf.rect(0, H - 7, W, 7, 'F');
+  pdf.setFillColor(192, 57, 43);
+  pdf.rect(0, H - 10, W, 3, 'F');
+
+  // ── Línea perforada ──
+  const perf = W - 63;
+  pdf.setDrawColor(60, 60, 60);
+  pdf.setLineWidth(0.3);
+  pdf.setLineDashPattern([2, 2], 0);
+  pdf.line(perf, 0, perf, H);
+  pdf.setLineDashPattern([], 0);
+
+  // ── SECCIÓN IZQUIERDA ──
+  const lW = perf - 12;
+
+  // Título TIMBA (blanco) CHATA (rojo)
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(26);
+  pdf.setTextColor(255, 255, 255);
+  const timbaW = pdf.getTextWidth('TIMBA');
+  pdf.text('TIMBA', 12, 32);
+  pdf.setTextColor(192, 57, 43);
+  pdf.text('CHATA', 12 + timbaW + 1, 32);
+
+  // Subtitle
+  pdf.setFont('helvetica', 'italic');
+  pdf.setFontSize(12);
+  pdf.setTextColor(200, 200, 200);
+  pdf.text('Mundialista', 12, 41);
+
+  // Línea divisoria
+  pdf.setDrawColor(26, 92, 42);
+  pdf.setLineWidth(0.8);
+  pdf.line(12, 45, lW + 4, 45);
+
+  // Nombre del asistente
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(15);
+  pdf.setTextColor(255, 255, 255);
+  const maxNW = lW - 4;
+  const nameLines = pdf.splitTextToSize(attendee.name.toUpperCase(), maxNW);
+  pdf.text(nameLines.slice(0, 2), 12, 55);
+
+  // Detalles del evento
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(7.5);
+  pdf.setTextColor(160, 160, 160);
+  pdf.text('Jueves 11 de Junio, 2026  ·  8:00 PM', 12, 69);
+  pdf.text('Mambo Cafe Insurgentes  ·  Av. Insurgentes Sur #644, CDMX', 12, 75);
+
+  // Número de ticket
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(6.5);
+  pdf.setTextColor(80, 80, 80);
+  pdf.text(`TICKET  #${attendee.ticketNum}`, 12, 83);
+
+  // ── SECCIÓN DERECHA (QR) ──
+  const qrX = perf + 3;
+  const qrY = 12;
+  const qrS = 52;
+
+  // Fondo blanco para QR
+  pdf.setFillColor(255, 255, 255);
+  pdf.roundedRect(qrX - 1, qrY - 1, qrS + 2, qrS + 2, 2, 2, 'F');
+
+  // QR code
+  const qrDataUrl = await makeQRDataURL(qrPayload(attendee));
+  if (qrDataUrl) pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrS, qrS);
+
+  // Label bajo el QR
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(5.5);
+  pdf.setTextColor(200, 200, 200);
+  const label = 'ESCANEAR EN LA ENTRADA';
+  const lx = qrX + qrS / 2 - pdf.getTextWidth(label) / 2;
+  pdf.text(label, lx, qrY + qrS + 7);
+
+  // Logos de texto
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(6.5);
+  pdf.setTextColor(26, 92, 42);
+  pdf.text('MAMBO CAFE', qrX, qrY + qrS + 13);
+  pdf.setTextColor(192, 57, 43);
+  pdf.text('INSURGENTES', qrX, qrY + qrS + 18);
+
+  return pdf;
+}
+
+// ── Descargar 1 ticket ──
+async function downloadOne(id, btn) {
+  const a = attendees.find(x => x.id === id);
+  if (!a) return;
+  const orig = btn.textContent; btn.textContent = '⏳'; btn.disabled = true;
+  try {
+    const pdf = await buildTicketPDF(a);
+    pdf.save(`Ticket_${a.ticketNum}_${a.name.replace(/\s+/g,'_')}.pdf`);
+  } catch(e) { alert('Error al generar. Intenta de nuevo.'); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+// ── Descargar todos (ZIP) ──
+async function downloadAllTickets() {
+  if (!attendees.length) { alert('No hay asistentes cargados.'); return; }
+  const pw = document.getElementById('prog-wrap');
+  const pb = document.getElementById('prog-bar');
+  const pt = document.getElementById('prog-text');
+  pw.style.display = 'block';
+
+  const zip = new JSZip();
+  for (let i = 0; i < attendees.length; i++) {
+    const a = attendees[i];
+    pt.textContent = `Generando ${i + 1}/${attendees.length}: ${a.name}`;
+    pb.style.width  = ((i + 1) / attendees.length * 100) + '%';
+    try {
+      const pdf  = await buildTicketPDF(a);
+      const blob = pdf.output('blob');
+      zip.file(`Ticket_${a.ticketNum}_${a.name.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g,'').replace(/\s+/g,'_')}.pdf`, blob);
+    } catch(e) { console.warn('Error ticket:', a.name, e); }
+    await new Promise(r => setTimeout(r, 30));
+  }
+
+  pt.textContent = 'Creando archivo ZIP...';
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url; link.download = 'Tickets_Timbachata_Mundialista.zip'; link.click();
+  URL.revokeObjectURL(url);
+
+  pw.style.display = 'none'; pb.style.width = '0%';
+}
+
+// ═══════════════════════════════════════════════
+// ESCÁNER QR
+// ═══════════════════════════════════════════════
+async function startScanner() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    scanStream = stream; scanning = true;
+    document.getElementById('scan-start-view').style.display  = 'none';
+    document.getElementById('scan-active-view').style.display = 'block';
+    const vid = document.getElementById('qr-video');
+    vid.srcObject = stream;
+    await vid.play();
+    requestAnimationFrame(scanLoop);
+  } catch(e) {
+    alert('No se pudo acceder a la cámara.\n\nAsegúrate de dar permiso de cámara al navegador y de estar en HTTPS o localhost.');
+  }
+}
+
+function stopScanner() {
+  scanning = false;
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  document.getElementById('scan-start-view').style.display  = 'block';
+  document.getElementById('scan-active-view').style.display = 'none';
+}
+
+function scanLoop() {
+  if (!scanning) return;
+  const vid = document.getElementById('qr-video');
+  const can = document.getElementById('qr-canvas');
+  if (vid.readyState === vid.HAVE_ENOUGH_DATA) {
+    can.width = vid.videoWidth; can.height = vid.videoHeight;
+    const ctx = can.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(vid, 0, 0, can.width, can.height);
+    const img  = ctx.getImageData(0, 0, can.width, can.height);
+    const code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+    if (code) {
+      const now = Date.now();
+      if (code.data !== lastScanId || now - lastScanTime > 3500) {
+        lastScanId = code.data; lastScanTime = now;
+        handleScan(code.data);
+      }
+    }
+  }
+  requestAnimationFrame(scanLoop);
+}
+
+function handleScan(raw) {
+  const res = parseQR(raw);
+  const rEl  = document.getElementById('scan-result');
+  const icon = document.getElementById('s-icon');
+  const name = document.getElementById('s-name');
+  const msg  = document.getElementById('s-msg');
+
+  rEl.className = 'scan-result show';
+
+  if (!res.ok) {
+    rEl.classList.add('invalid');
+    icon.textContent = '❌'; name.textContent = 'QR inválido';
+    msg.textContent  = 'Este código no corresponde al evento Timbachata Mundialista.';
+    return;
+  }
+
+  // Buscar en lista de asistentes
+  const att = attendees.find(a => a.id === res.id);
+
+  if (!att) {
+    // Puede que la lista no esté importada en este dispositivo
+    // Verificamos si hay lista cargada
+    if (attendees.length === 0) {
+      // Sin lista: mostrar nombre del QR y marcar como válido
+      // Registrar en recentScans para evitar duplicados
+      const already = recentScans.find(s => s.id === res.id);
+      if (already) {
+        rEl.classList.add('dup');
+        icon.textContent = '⚠️'; name.textContent = res.name;
+        msg.textContent  = 'Ya fue registrado/a a las ' + fmtTime(already.time);
+      } else {
+        const entry = { id: res.id, name: res.name, time: Date.now() };
+        recentScans.unshift(entry); save();
+        rEl.classList.add('valid');
+        icon.textContent = '✅'; name.textContent = res.name;
+        msg.textContent  = '¡Bienvenido/a! (Sin lista cargada — solo QR verificado)';
+        vibrate();
+        renderRecent();
+      }
+    } else {
+      rEl.classList.add('invalid');
+      icon.textContent = '❌'; name.textContent = res.name || 'Desconocido';
+      msg.textContent  = 'Este ticket no está en la lista de asistentes.';
+    }
+    return;
+  }
+
+  if (att.checkedIn) {
+    rEl.classList.add('dup');
+    icon.textContent = '⚠️'; name.textContent = att.name;
+    msg.textContent  = 'Ya ingresó a las ' + fmtTime(att.checkInTime);
+    return;
+  }
+
+  // ✅ VÁLIDO
+  att.checkedIn  = true; att.checkInTime = Date.now();
+  const entry = { id: att.id, name: att.name, time: att.checkInTime };
+  recentScans.unshift(entry); save();
+  rEl.classList.add('valid');
+  icon.textContent = '✅'; name.textContent = att.name;
+  msg.textContent  = '¡Bienvenido/a! — Ticket #' + att.ticketNum;
+  vibrate();
+  renderRecent();
+}
+
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+load();
+if (attendees.length) {
+  document.getElementById('count-num').textContent = attendees.length;
+  document.getElementById('load-result').style.display = 'block';
+}
+renderList();
+</script>
+</body>
+</html>
