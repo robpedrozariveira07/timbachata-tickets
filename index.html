@@ -452,6 +452,7 @@ function renderList() {
       <div class="a-actions">
         <span class="badge ${a.checkedIn?'badge-ok':'badge-pend'}">${a.checkedIn?'✓ OK':'Pendiente'}</span>
         <button class="btn btn-outline" onclick="downloadOne('${a.id}',this)">⬇️</button>
+        <button class="btn btn-outline" style="color:var(--red);border-color:var(--red)" onclick="deleteAttendee('${a.id}','${escHtml(a.name)}')">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -740,6 +741,14 @@ function handleScan(raw){
 }
 
 function vibrate(){ if(navigator.vibrate) navigator.vibrate([80,40,80]); }
+
+function deleteAttendee(id, name) {
+  if (!confirm(`¿Eliminar a "${name}" de la lista?`)) return;
+  attendees = attendees.filter(a => a.id !== id);
+  saveLocal();
+  if (db) db.ref(EVENT_PATH + '/attendees/' + id).remove();
+  renderList();
+}
 
 // ══════════════════════════════════════════════
 // INIT
