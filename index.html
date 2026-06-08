@@ -367,24 +367,45 @@ function showTab(id) {
 // CARGAR NOMBRES
 // ══════════════════════════════════════════════
 function processNames(names) {
+  // Deduplicar nombres nuevos entre sí
   const seen = new Set();
   names = names.filter(n => { if(seen.has(n)) return false; seen.add(n); return true; });
-  const prevMap = {};
-  attendees.forEach(a => { prevMap[a.id] = a; });
-  attendees = names.map((name,i) => {
-    const id = genId(name,i);
-    const prev = prevMap[id];
-    return { id, name, ticketNum: String(i+1).padStart(4,'0'), checkedIn: prev?.checkedIn||false, checkInTime: prev?.checkInTime||null };
+
+  // Mapa de nombres ya existentes (para no duplicar)
+  const existingNames = new Set(attendees.map(a => a.name.toLowerCase().trim()));
+
+  // Filtrar solo los que no existen ya
+  const newNames = names.filter(n => !existingNames.has(n.toLowerCase().trim()));
+
+  if (!newNames.length) {
+    alert('Todos los nombres ya están en la lista.');
+    return;
+  }
+
+  // El siguiente número de ticket parte desde el último existente
+  const startIdx = attendees.length;
+
+  const newAttendees = newNames.map((name, i) => {
+    const globalIdx = startIdx + i;
+    const id = genId(name, globalIdx);
+    return { id, name, ticketNum: String(globalIdx + 1).padStart(4,'0'), checkedIn: false, checkInTime: null };
   });
+
+  attendees = [...attendees, ...newAttendees];
   saveLocal();
-  // Subir a Firebase
+
+  // Subir solo los nuevos a Firebase
   if (db) {
     const fbData = {};
-    attendees.forEach(a => { fbData[a.id] = a; });
-    db.ref(EVENT_PATH+'/attendees').set(fbData).catch(e => console.warn('FB write:', e));
+    newAttendees.forEach(a => { fbData[a.id] = a; });
+    db.ref(EVENT_PATH+'/attendees').update(fbData).catch(e => console.warn('FB write:', e));
   }
+
   document.getElementById('count-num').textContent = attendees.length;
   document.getElementById('load-result').style.display = 'block';
+  if (newNames.length < names.length) {
+    alert(`✅ ${newNames.length} asistente(s) agregado(s). ${names.length - newNames.length} ya estaban en la lista.`);
+  }
   renderList();
 }
 
