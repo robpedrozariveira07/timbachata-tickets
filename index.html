@@ -17,10 +17,9 @@
     .header h1 .r{color:var(--red);}
     .header p{color:var(--muted);font-size:0.75em;margin-top:3px;}
     .firebase-bar{background:#1c2128;border-bottom:1px solid var(--border);padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:0.75em;}
-    .fb-dot{width:8px;height:8px;border-radius:50%;background:#30363d;flex-shrink:0;}
+    .fb-dot{width:8px;height:8px;border-radius:50%;background:#30363d;flex-shrink:0;transition:background .4s;}
     .fb-dot.ok{background:#22763a;} .fb-dot.err{background:var(--red);} .fb-dot.loading{background:var(--gold);}
     .fb-txt{color:var(--muted);flex:1;}
-    .fb-setup-btn{background:transparent;border:1px solid var(--border);color:#ccc;font-size:0.75em;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;}
     .tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
     .tab{flex:1;padding:12px 4px;text-align:center;cursor:pointer;font-size:0.72em;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;user-select:none;}
     .tab.active{color:#fff;border-bottom-color:var(--red);background:var(--bg3);}
@@ -98,29 +97,12 @@
     .empty-msg{color:var(--muted);text-align:center;padding:28px 10px;font-size:0.85em;}
     .io-row{display:flex;gap:7px;margin-bottom:10px;}
     .io-row .btn{flex:1;justify-content:center;}
-    /* DASHBOARD */
     .dash-table-wrap{overflow-x:auto;margin-top:12px;}
     table{width:100%;border-collapse:collapse;font-size:0.8em;}
     th{background:var(--bg3);color:var(--muted);padding:8px 10px;text-align:left;font-weight:600;font-size:0.75em;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;}
     td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
     tr:hover td{background:var(--bg3);}
     .tag-in{color:var(--green);font-weight:700;}
-    /* FIREBASE SETUP MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:16px;}
-    .modal-overlay.show{display:flex;}
-    .modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:480px;width:100%;}
-    .modal h2{font-size:1.1em;margin-bottom:4px;}
-    .modal p{font-size:0.8em;color:var(--muted);margin-bottom:12px;line-height:1.5;}
-    .modal label{font-size:0.78em;color:var(--muted);display:block;margin-bottom:4px;margin-top:10px;}
-    .modal input{background:var(--bg);border:1px solid var(--border);border-radius:7px;color:#fff;padding:9px 11px;width:100%;font-size:0.85em;font-family:monospace;}
-    .modal input:focus{outline:none;border-color:var(--green);}
-    .modal-btns{display:flex;gap:8px;margin-top:14px;}
-    .modal-btns .btn{flex:1;justify-content:center;}
-    .steps{background:var(--bg);border-radius:8px;padding:12px;margin-bottom:4px;}
-    .steps ol{padding-left:18px;}
-    .steps li{font-size:0.78em;color:var(--muted);margin-bottom:5px;line-height:1.4;}
-    .steps li a{color:var(--green);text-decoration:none;}
-    .steps li strong{color:#ddd;}
     @media(max-width:420px){
       .header h1{font-size:1.2em;}
       .tab{font-size:0.65em;padding:10px 3px;}
@@ -134,11 +116,9 @@
   <p>🎟️ Sistema de Tickets · Mambo Café Insurgentes · 11 Jun 2026</p>
 </div>
 
-<!-- Firebase status bar -->
 <div class="firebase-bar">
-  <div class="fb-dot" id="fb-dot"></div>
-  <span class="fb-txt" id="fb-txt">Sin conexión a nube — configura Firebase para sincronizar entre dispositivos</span>
-  <button class="fb-setup-btn" onclick="openSetup()">⚙️ Configurar</button>
+  <div class="fb-dot loading" id="fb-dot"></div>
+  <span class="fb-txt" id="fb-txt">Conectando a la nube…</span>
 </div>
 
 <div class="tabs">
@@ -148,11 +128,11 @@
   <div class="tab"         onclick="showTab('dashboard')">📊 Dashboard</div>
 </div>
 
-<!-- ══════ TAB 1: SUBIR LISTA ══════ -->
+<!-- TAB 1: LISTA -->
 <div id="tab-upload" class="page active">
   <div class="info-box">
     Sube un <strong>Excel (.xlsx) o CSV</strong> con los nombres, o escríbelos a mano (uno por línea).
-    Con Firebase configurado, la lista se sincroniza automáticamente al celular escáner.
+    La lista se sincroniza automáticamente a todos los dispositivos.
   </div>
   <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
     <div class="icon">📂</div>
@@ -172,7 +152,7 @@
   </div>
 </div>
 
-<!-- ══════ TAB 2: TICKETS ══════ -->
+<!-- TAB 2: TICKETS -->
 <div id="tab-tickets" class="page">
   <div class="stats-row">
     <div class="stat-card w"><div class="num" id="st-total">0</div><div class="lbl">Total</div></div>
@@ -181,8 +161,7 @@
   </div>
   <div class="actions-row">
     <button class="btn btn-red" onclick="downloadAllTickets()">📥 Todos (ZIP)</button>
-    <button class="btn btn-outline" onclick="exportList()">💾 Exportar JSON</button>
-    <button class="btn btn-outline" onclick="clearAll()">🗑️</button>
+    <button class="btn btn-outline" onclick="clearAll()">🗑️ Limpiar</button>
   </div>
   <div class="progress-wrap" id="prog-wrap">
     <p id="prog-text">Generando...</p>
@@ -196,16 +175,12 @@
   </div>
 </div>
 
-<!-- ══════ TAB 3: ESCÁNER ══════ -->
+<!-- TAB 3: ESCÁNER -->
 <div id="tab-scanner" class="page">
   <div class="scanner-wrap">
     <div class="info-box">
       <strong>📱 Úsalo en tu celular.</strong>
-      Con Firebase configurado, los check-ins se guardan en la nube automáticamente y aparecen en el Dashboard desde cualquier dispositivo.
-    </div>
-    <div class="io-row">
-      <button class="btn btn-outline btn-full" onclick="document.getElementById('import-input').click()">📂 Importar Lista (JSON)</button>
-      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importList(event)">
+      Todos los check-ins se sincronizan en tiempo real y aparecen en el Dashboard desde cualquier dispositivo.
     </div>
     <div id="scan-start-view">
       <button class="start-cam-btn" onclick="startScanner()">📷 Iniciar Cámara</button>
@@ -234,7 +209,7 @@
   </div>
 </div>
 
-<!-- ══════ TAB 4: DASHBOARD ══════ -->
+<!-- TAB 4: DASHBOARD -->
 <div id="tab-dashboard" class="page">
   <div class="stats-row">
     <div class="stat-card w"><div class="num" id="d-total">0</div><div class="lbl">Total</div></div>
@@ -249,15 +224,9 @@
     <input type="text" id="dash-search" placeholder="🔍 Buscar en historial..." oninput="renderDashboard()">
   </div>
   <div class="dash-table-wrap">
-    <table id="dash-table">
+    <table>
       <thead>
-        <tr>
-          <th>#</th>
-          <th>Nombre</th>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Ticket</th>
-        </tr>
+        <tr><th>#</th><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Ticket</th></tr>
       </thead>
       <tbody id="dash-body">
         <tr><td colspan="5" class="empty-msg">Sin registros de entrada aún.</td></tr>
@@ -266,182 +235,98 @@
   </div>
 </div>
 
-<!-- ══════ FIREBASE SETUP MODAL ══════ -->
-<div class="modal-overlay" id="setup-modal">
-  <div class="modal">
-    <h2>⚙️ Configurar Firebase</h2>
-    <p>Firebase sincroniza la lista y los check-ins entre tu laptop y celular en tiempo real. Es gratis.</p>
-    <div class="steps">
-      <ol>
-        <li>Ve a <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a></li>
-        <li>Crea un proyecto → dale cualquier nombre</li>
-        <li>En el menú lateral: <strong>Realtime Database → Crear base de datos</strong> (modo prueba)</li>
-        <li>Ve a <strong>Configuración del proyecto ⚙️ → Tus apps → &lt;/&gt; Web</strong></li>
-        <li>Registra la app y copia los valores del <code>firebaseConfig</code> abajo:</li>
-      </ol>
-    </div>
-    <label>API Key</label>
-    <input type="text" id="fb-apiKey" placeholder="AIzaSy...">
-    <label>Database URL</label>
-    <input type="text" id="fb-dbURL" placeholder="https://tu-proyecto-default-rtdb.firebaseio.com">
-    <label>Project ID</label>
-    <input type="text" id="fb-projectId" placeholder="tu-proyecto-id">
-    <div class="modal-btns">
-      <button class="btn btn-outline" onclick="closeSetup()">Cancelar</button>
-      <button class="btn btn-green" onclick="saveFirebaseConfig()">✅ Conectar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════ SCRIPTS ══════ -->
+<!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 // ══════════════════════════════════════════════
-// CONSTANTES
+// FIREBASE CONFIG — hardcodeado, todos conectan automáticamente
 // ══════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:      "AIzaSyDaobKuGdh00nQMw0KgiLl4j2Qedi2GBvg",
+  databaseURL: "https://timbachata-d3287-default-rtdb.firebaseio.com",
+  projectId:   "timbachata-d3287"
+};
+
 const EVENT_KEY   = 'TIMBACHATA_MUNDIALISTA_2026';
+const EVENT_PATH  = 'timbachata-mundialista-2026';
 const STORE_KEY   = 'timba_attendees_v3';
 const HISTORY_KEY = 'timba_history_v1';
-const FB_CFG_KEY  = 'timba_firebase_cfg';
 
-let attendees   = [];
-let history     = [];   // [{id,name,ticketNum,checkInTime}] — histórico permanente
-let recentScans = [];
-let scanStream  = null;
-let scanning    = false;
-let lastScanId  = null;
-let lastScanTime = 0;
+let attendees = [];
+let history   = [];
+let db        = null;
+let scanStream = null;
+let scanning   = false;
+let lastScanId = null, lastScanTime = 0;
 let barcodeDetector = null;
-let db = null;  // Firebase Realtime Database ref
 
 // ══════════════════════════════════════════════
-// FIREBASE
+// FIREBASE INIT
 // ══════════════════════════════════════════════
 function initFirebase() {
-  const cfg = loadFBConfig();
-  if (!cfg) return;
   try {
-    const app = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp({
-      apiKey:      cfg.apiKey,
-      databaseURL: cfg.dbURL,
-      projectId:   cfg.projectId
-    });
+    const app = firebase.apps.length ? firebase.apps[0] : firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database(app);
-    setFBStatus('loading', 'Conectando a Firebase…');
-    // Test connection
     db.ref('.info/connected').on('value', snap => {
       if (snap.val()) {
-        setFBStatus('ok', 'Firebase conectado ✓ — datos sincronizados en tiempo real');
-        startFirebaseListeners();
+        setFBStatus('ok', '🟢 Conectado a la nube — datos sincronizados en todos los dispositivos');
+        startListeners();
       } else {
-        setFBStatus('err', 'Sin conexión a Firebase (verifica internet)');
+        setFBStatus('err', '🔴 Sin conexión — verifica tu internet');
       }
     });
   } catch(e) {
-    setFBStatus('err', 'Error Firebase: ' + e.message);
+    setFBStatus('err', 'Error: ' + e.message);
   }
 }
 
-function startFirebaseListeners() {
-  if (!db) return;
-  const eventPath = EVENT_KEY.toLowerCase().replace(/_/g, '-');
-
-  // Escuchar asistentes
-  db.ref(eventPath + '/attendees').on('value', snap => {
+function startListeners() {
+  // Escuchar lista de asistentes
+  db.ref(EVENT_PATH + '/attendees').on('value', snap => {
     const data = snap.val();
     if (data) {
       attendees = Object.values(data);
       saveLocal();
       renderList();
-      renderDashboard();
     }
   });
 
-  // Escuchar historial de check-ins
-  db.ref(eventPath + '/checkins').on('child_added', snap => {
-    const entry = snap.val();
-    if (entry && !history.find(h => h.id === entry.id && h.checkInTime === entry.checkInTime)) {
-      history.push(entry);
-      saveHistory();
-      renderDashboard();
-      renderRecent();
+  // Escuchar check-ins en tiempo real
+  db.ref(EVENT_PATH + '/checkins').on('value', snap => {
+    const data = snap.val();
+    if (data) {
+      history = Object.values(data).sort((a,b) => b.checkInTime - a.checkInTime);
+    } else {
+      history = [];
     }
+    saveHistory();
+    renderDashboard();
+    renderRecent();
   });
-}
-
-function pushToFirebase(path, data) {
-  if (!db) return;
-  const eventPath = EVENT_KEY.toLowerCase().replace(/_/g, '-');
-  db.ref(eventPath + '/' + path).set(data).catch(e => console.warn('FB write error:', e));
-}
-
-function pushCheckinToFirebase(entry) {
-  if (!db) return;
-  const eventPath = EVENT_KEY.toLowerCase().replace(/_/g, '-');
-  db.ref(eventPath + '/checkins').push(entry).catch(e => console.warn('FB checkin error:', e));
 }
 
 function setFBStatus(type, msg) {
-  const dot = document.getElementById('fb-dot');
-  const txt = document.getElementById('fb-txt');
-  dot.className = 'fb-dot ' + (type === 'ok' ? 'ok' : type === 'err' ? 'err' : 'loading');
-  txt.textContent = msg;
+  document.getElementById('fb-dot').className = 'fb-dot ' + type;
+  document.getElementById('fb-txt').textContent = msg;
 }
-
-// ── Firebase config store ──
-function loadFBConfig() {
-  try { return JSON.parse(localStorage.getItem(FB_CFG_KEY)); } catch { return null; }
-}
-
-function saveFBConfig(cfg) {
-  localStorage.setItem(FB_CFG_KEY, JSON.stringify(cfg));
-}
-
-function saveFirebaseConfig() {
-  const apiKey    = document.getElementById('fb-apiKey').value.trim();
-  const dbURL     = document.getElementById('fb-dbURL').value.trim();
-  const projectId = document.getElementById('fb-projectId').value.trim();
-  if (!apiKey || !dbURL || !projectId) { alert('Completa todos los campos.'); return; }
-  saveFBConfig({ apiKey, dbURL, projectId });
-  closeSetup();
-  location.reload();
-}
-
-function openSetup() {
-  const cfg = loadFBConfig();
-  if (cfg) {
-    document.getElementById('fb-apiKey').value    = cfg.apiKey    || '';
-    document.getElementById('fb-dbURL').value     = cfg.dbURL     || '';
-    document.getElementById('fb-projectId').value = cfg.projectId || '';
-  }
-  document.getElementById('setup-modal').classList.add('show');
-}
-
-function closeSetup() { document.getElementById('setup-modal').classList.remove('show'); }
 
 // ══════════════════════════════════════════════
-// PERSISTENCIA LOCAL
+// PERSISTENCIA LOCAL (respaldo offline)
 // ══════════════════════════════════════════════
-function saveLocal() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(attendees)); } catch {}
-}
-function saveHistory() {
-  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch {}
-}
+function saveLocal()   { try { localStorage.setItem(STORE_KEY,   JSON.stringify(attendees)); } catch{} }
+function saveHistory() { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history));   } catch{} }
 function loadLocal() {
   try {
-    const a = localStorage.getItem(STORE_KEY);
-    if (a) attendees = JSON.parse(a);
-    const h = localStorage.getItem(HISTORY_KEY);
-    if (h) history = JSON.parse(h);
-  } catch {}
+    const a = localStorage.getItem(STORE_KEY);   if(a) attendees = JSON.parse(a);
+    const h = localStorage.getItem(HISTORY_KEY); if(h) history   = JSON.parse(h);
+  } catch{}
 }
 
 // ══════════════════════════════════════════════
@@ -450,50 +335,32 @@ function loadLocal() {
 function genId(name, idx) {
   const str = EVENT_KEY + '|' + idx + '|' + name;
   let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; }
+  for (let i=0; i<str.length; i++) { h ^= str.charCodeAt(i); h = (h*0x01000193)>>>0; }
   return h.toString(36).toUpperCase().padStart(7,'0');
 }
-
 function qrPayload(a) { return EVENT_KEY + '|' + a.id + '|' + a.name; }
-
 function parseQR(txt) {
   const p = txt.split('|');
-  if (p.length >= 3 && p[0] === EVENT_KEY) return { ok:true, id:p[1], name:p.slice(2).join('|') };
-  return { ok:false };
+  if (p.length>=3 && p[0]===EVENT_KEY) return {ok:true, id:p[1], name:p.slice(2).join('|')};
+  return {ok:false};
 }
-
-function fmtTime(ts) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-}
-
-function fmtDate(ts) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'});
-}
-
-function fmtDateTime(ts) {
-  if (!ts) return '';
-  return new Date(ts).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function fmtTime(ts)     { return ts ? new Date(ts).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function fmtDate(ts)     { return ts ? new Date(ts).toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}) : ''; }
+function escHtml(s)      { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ══════════════════════════════════════════════
 // TABS
 // ══════════════════════════════════════════════
 function showTab(id) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['upload','tickets','scanner','dashboard'][i] === id);
+  ['upload','tickets','scanner','dashboard'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t===id);
   });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  if (id==='tickets')   renderList();
-  if (id==='dashboard') renderDashboard();
-  if (id==='scanner')   renderRecent();
-  if (id!=='scanner')   stopScanner();
+  if(id==='tickets')   renderList();
+  if(id==='dashboard') renderDashboard();
+  if(id==='scanner')   renderRecent();
+  if(id!=='scanner')   stopScanner();
 }
 
 // ══════════════════════════════════════════════
@@ -502,21 +369,19 @@ function showTab(id) {
 function processNames(names) {
   const seen = new Set();
   names = names.filter(n => { if(seen.has(n)) return false; seen.add(n); return true; });
-  // Preserve check-in status for existing attendees
   const prevMap = {};
   attendees.forEach(a => { prevMap[a.id] = a; });
-  attendees = names.map((name, i) => {
-    const id = genId(name, i);
+  attendees = names.map((name,i) => {
+    const id = genId(name,i);
     const prev = prevMap[id];
     return { id, name, ticketNum: String(i+1).padStart(4,'0'), checkedIn: prev?.checkedIn||false, checkInTime: prev?.checkInTime||null };
   });
   saveLocal();
-  // Sync to Firebase
+  // Subir a Firebase
   if (db) {
-    const eventPath = EVENT_KEY.toLowerCase().replace(/_/g,'-');
     const fbData = {};
     attendees.forEach(a => { fbData[a.id] = a; });
-    db.ref(eventPath+'/attendees').set(fbData).catch(e => console.warn(e));
+    db.ref(EVENT_PATH+'/attendees').set(fbData).catch(e => console.warn('FB write:', e));
   }
   document.getElementById('count-num').textContent = attendees.length;
   document.getElementById('load-result').style.display = 'block';
@@ -530,16 +395,14 @@ function loadNames() {
   processNames(names);
 }
 
-// ── Archivo ──
 document.getElementById('file-input').addEventListener('change', function(e) {
-  const f = e.target.files[0]; if (!f) return;
+  const f = e.target.files[0]; if(!f) return;
   const r = new FileReader();
   r.onload = ev => {
     const data = ev.target.result;
     let names = [];
     if (f.name.match(/\.(csv|txt)$/i)) {
-      const text = new TextDecoder().decode(data);
-      names = text.split(/\r?\n/).map(l=>l.split(',')[0].replace(/["']/g,'').trim()).filter(Boolean);
+      names = new TextDecoder().decode(data).split(/\r?\n/).map(l=>l.split(',')[0].replace(/["']/g,'').trim()).filter(Boolean);
     } else {
       const wb = XLSX.read(data,{type:'array'});
       const ws = wb.Sheets[wb.SheetNames[0]];
@@ -555,54 +418,18 @@ document.getElementById('file-input').addEventListener('change', function(e) {
   this.value='';
 });
 
-// Drag & drop
 const zone = document.getElementById('upload-zone');
 zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('drag-over');});
 zone.addEventListener('dragleave', ()=>zone.classList.remove('drag-over'));
 zone.addEventListener('drop', e=>{
-  e.preventDefault();zone.classList.remove('drag-over');
+  e.preventDefault(); zone.classList.remove('drag-over');
   const f=e.dataTransfer.files[0]; if(!f) return;
-  const fi=document.getElementById('file-input');
-  try{const dt=new DataTransfer();dt.items.add(f);fi.files=dt.files;}catch{}
-  fi.dispatchEvent(new Event('change'));
+  try{const dt=new DataTransfer();dt.items.add(f);document.getElementById('file-input').files=dt.files;}catch{}
+  document.getElementById('file-input').dispatchEvent(new Event('change'));
 });
 
 // ══════════════════════════════════════════════
-// EXPORT / IMPORT
-// ══════════════════════════════════════════════
-function exportList() {
-  if (!attendees.length) { alert('No hay asistentes.'); return; }
-  const json = JSON.stringify({event:EVENT_KEY, attendees}, null, 2);
-  const blob = new Blob([json],{type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a'); a.href=url; a.download='lista_timbachata.json'; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importList(ev) {
-  const f = ev.target.files[0]; if (!f) return;
-  const r = new FileReader();
-  r.onload = e => {
-    try {
-      const obj = JSON.parse(e.target.result);
-      if (!obj.attendees||!Array.isArray(obj.attendees)) throw new Error();
-      const localMap = {};
-      attendees.forEach(a=>{localMap[a.id]=a;});
-      attendees = obj.attendees.map(a=>{
-        const local = localMap[a.id];
-        return local?{...a,checkedIn:local.checkedIn,checkInTime:local.checkInTime}:a;
-      });
-      saveLocal();
-      alert(`✅ Lista importada: ${attendees.length} asistentes.`);
-      renderList(); renderDashboard();
-    } catch { alert('Archivo inválido.'); }
-  };
-  r.readAsText(f);
-  ev.target.value='';
-}
-
-// ══════════════════════════════════════════════
-// RENDER LISTA DE TICKETS
+// RENDER LISTA
 // ══════════════════════════════════════════════
 function renderList() {
   const q = (document.getElementById('search-box').value||'').toLowerCase();
@@ -610,10 +437,10 @@ function renderList() {
   const checked  = attendees.filter(a=>a.checkedIn).length;
   document.getElementById('st-total').textContent = attendees.length;
   document.getElementById('st-in').textContent    = checked;
-  document.getElementById('st-pend').textContent  = attendees.length-checked;
+  document.getElementById('st-pend').textContent  = attendees.length - checked;
   const el = document.getElementById('attendee-list');
   if (!filtered.length) {
-    el.innerHTML=`<p class="empty-msg">${attendees.length?'Sin resultados.':'Carga asistentes en pestaña Lista.'}</p>`;
+    el.innerHTML = `<p class="empty-msg">${attendees.length?'Sin resultados.':'Carga asistentes en pestaña Lista.'}</p>`;
     return;
   }
   el.innerHTML = filtered.map(a=>`
@@ -630,6 +457,15 @@ function renderList() {
   `).join('');
 }
 
+function clearAll() {
+  if(!confirm('¿Borrar lista de asistentes?')) return;
+  attendees = []; saveLocal();
+  if(db) db.ref(EVENT_PATH+'/attendees').remove();
+  renderList();
+  document.getElementById('names-input').value='';
+  document.getElementById('load-result').style.display='none';
+}
+
 // ══════════════════════════════════════════════
 // RENDER DASHBOARD
 // ══════════════════════════════════════════════
@@ -639,12 +475,10 @@ function renderDashboard() {
   const pct     = total ? Math.round(checked/total*100) : 0;
   document.getElementById('d-total').textContent = total;
   document.getElementById('d-in').textContent    = checked;
-  document.getElementById('d-pct').textContent   = pct + '%';
+  document.getElementById('d-pct').textContent   = pct+'%';
 
   const q = (document.getElementById('dash-search').value||'').toLowerCase();
-  const sorted = [...history].sort((a,b)=>b.checkInTime-a.checkInTime);
-  const filtered = sorted.filter(h=>h.name.toLowerCase().includes(q));
-
+  const filtered = history.filter(h=>h.name.toLowerCase().includes(q));
   const tbody = document.getElementById('dash-body');
   if (!filtered.length) {
     tbody.innerHTML='<tr><td colspan="5" class="empty-msg">Sin registros de entrada aún.</td></tr>';
@@ -663,7 +497,7 @@ function renderDashboard() {
 
 function renderRecent() {
   const el = document.getElementById('recent-list');
-  const recent = [...history].sort((a,b)=>b.checkInTime-a.checkInTime).slice(0,15);
+  const recent = history.slice(0,15);
   if (!recent.length) { el.innerHTML='<p class="empty-msg" style="padding:8px;">Sin registros aún.</p>'; return; }
   el.innerHTML = recent.map(s=>`
     <div class="recent-item">
@@ -674,11 +508,10 @@ function renderRecent() {
 }
 
 function exportDashboard() {
-  if (!history.length) { alert('No hay registros de entrada.'); return; }
-  const wb  = XLSX.utils.book_new();
+  if(!history.length){alert('No hay registros.');return;}
+  const wb   = XLSX.utils.book_new();
   const rows = [['#','Nombre','Fecha','Hora','Ticket']];
-  const sorted = [...history].sort((a,b)=>a.checkInTime-b.checkInTime);
-  sorted.forEach((h,i)=>{
+  [...history].sort((a,b)=>a.checkInTime-b.checkInTime).forEach((h,i)=>{
     rows.push([i+1, h.name, fmtDate(h.checkInTime), fmtTime(h.checkInTime), '#'+(h.ticketNum||'—')]);
   });
   const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -688,24 +521,14 @@ function exportDashboard() {
 }
 
 function clearHistory() {
-  if (!confirm('¿Borrar todo el historial de entradas? Esta acción no se puede deshacer.')) return;
-  history = [];
-  saveHistory();
-  renderDashboard();
-  renderRecent();
-}
-
-function clearAll() {
-  if (!confirm('¿Borrar lista de asistentes y tickets?')) return;
-  attendees = [];
-  saveLocal();
-  renderList();
-  document.getElementById('names-input').value='';
-  document.getElementById('load-result').style.display='none';
+  if(!confirm('¿Borrar todo el historial de entradas?')) return;
+  history = []; saveHistory();
+  if(db) db.ref(EVENT_PATH+'/checkins').remove();
+  renderDashboard(); renderRecent();
 }
 
 // ══════════════════════════════════════════════
-// QR GENERATION (librería embebida)
+// GENERAR QR Y PDF
 // ══════════════════════════════════════════════
 async function makeQRDataURL(text) {
   return new Promise((res,rej) => {
@@ -722,11 +545,10 @@ async function makeQRDataURL(text) {
         document.body.removeChild(div);
         res(url);
       },300);
-    } catch(e){ rej(e); }
+    } catch(e){rej(e);}
   });
 }
 
-// ── Build PDF ──
 async function buildTicketPDF(attendee) {
   const jsPDF = (window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
   const pdf = new jsPDF({orientation:'landscape',unit:'mm',format:[216,89]});
@@ -740,8 +562,7 @@ async function buildTicketPDF(attendee) {
   pdf.setDrawColor(60,60,60); pdf.setLineWidth(0.3);
   pdf.setLineDashPattern([2,2],0); pdf.line(perf,0,perf,H); pdf.setLineDashPattern([],0);
   const lW=perf-12;
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(26);
-  pdf.setTextColor(255,255,255);
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(26); pdf.setTextColor(255,255,255);
   const tw=pdf.getTextWidth('TIMBA'); pdf.text('TIMBA',12,32);
   pdf.setTextColor(192,57,43); pdf.text('CHATA',12+tw+1,32);
   pdf.setFont('helvetica','italic'); pdf.setFontSize(12); pdf.setTextColor(200,200,200); pdf.text('Mundialista',12,41);
@@ -769,10 +590,8 @@ async function buildTicketPDF(attendee) {
 async function downloadOne(id,btn) {
   const a=attendees.find(x=>x.id===id); if(!a) return;
   const orig=btn.textContent; btn.textContent='⏳'; btn.disabled=true;
-  try {
-    const pdf=await buildTicketPDF(a);
-    pdf.save(`Ticket_${a.ticketNum}_${a.name.replace(/\s+/g,'_')}.pdf`);
-  } catch(e){ alert('Error: '+e.message); }
+  try { const pdf=await buildTicketPDF(a); pdf.save(`Ticket_${a.ticketNum}_${a.name.replace(/\s+/g,'_')}.pdf`); }
+  catch(e){ alert('Error: '+e.message); }
   btn.textContent=orig; btn.disabled=false;
 }
 
@@ -806,38 +625,22 @@ async function downloadAllTickets() {
 // ══════════════════════════════════════════════
 async function startScanner() {
   try {
-    const stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}
-    });
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
     scanStream=stream; scanning=true;
     document.getElementById('scan-start-view').style.display='none';
     document.getElementById('scan-active-view').style.display='block';
     const vid=document.getElementById('qr-video');
     vid.srcObject=stream; await vid.play();
     if('BarcodeDetector' in window){
-      try{
-        barcodeDetector=new BarcodeDetector({formats:['qr_code']});
-        setStatus('✅ Detector nativo activo — apunta al QR');
-        nativeScanLoop(); return;
-      }catch{ barcodeDetector=null; }
+      try{barcodeDetector=new BarcodeDetector({formats:['qr_code']});setStatus('✅ Detector nativo — apunta al QR');nativeScanLoop();return;}
+      catch{barcodeDetector=null;}
     }
-    if(typeof jsQR==='function'){
-      setStatus('🔍 Apunta la cámara al código QR del ticket…');
-      requestAnimationFrame(jsqrLoop);
-    } else {
-      setStatus('⚠️ Cargando escáner…');
-      const s=document.createElement('script');
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
-      s.onload=()=>{setStatus('🔍 Listo — apunta al QR');requestAnimationFrame(jsqrLoop);};
-      s.onerror=()=>setStatus('❌ Error cargando escáner. Recarga la página.');
-      document.head.appendChild(s);
-    }
-  } catch(e){
-    alert('No se pudo acceder a la cámara.\n\nAsegúrate de dar permiso y estar en HTTPS.');
-  }
+    setStatus('🔍 Apunta al código QR del ticket…');
+    requestAnimationFrame(jsqrLoop);
+  } catch(e){ alert('No se pudo acceder a la cámara. Asegúrate de dar permiso y estar en HTTPS.'); }
 }
 
-function setStatus(txt){const el=document.getElementById('scan-status');if(el)el.textContent=txt;}
+function setStatus(txt){ const el=document.getElementById('scan-status'); if(el) el.textContent=txt; }
 
 function stopScanner(){
   scanning=false;
@@ -877,7 +680,7 @@ function jsqrLoop(){
         if(code.data!==lastScanId||now-lastScanTime>3500){lastScanId=code.data;lastScanTime=now;handleScan(code.data);}
       }
     }
-  }catch(e){console.warn('scan:',e);}
+  }catch(e){console.warn(e);}
   if(scanning) requestAnimationFrame(jsqrLoop);
 }
 
@@ -885,71 +688,58 @@ function handleScan(raw){
   const res=parseQR(raw);
   const rEl=document.getElementById('scan-result');
   const icon=document.getElementById('s-icon');
-  const name=document.getElementById('s-name');
+  const sName=document.getElementById('s-name');
   const msg=document.getElementById('s-msg');
   rEl.className='scan-result show';
 
   if(!res.ok){
     rEl.classList.add('invalid');
-    icon.textContent='❌'; name.textContent='QR inválido';
-    msg.textContent='Este código no corresponde al evento.';
-    return;
+    icon.textContent='❌'; sName.textContent='QR inválido';
+    msg.textContent='Este código no corresponde al evento.'; return;
   }
 
-  const att=attendees.find(a=>a.id===res.id);
-
-  if(!att){
-    if(attendees.length===0){
-      // Sin lista: validar solo por formato, registrar en historial
-      const already=history.find(h=>h.id===res.id);
-      if(already){
-        rEl.classList.add('dup');
-        icon.textContent='⚠️'; name.textContent=res.name;
-        msg.textContent='Ya ingresó a las '+fmtTime(already.checkInTime);
-      } else {
-        const entry={id:res.id,name:res.name,ticketNum:'—',checkInTime:Date.now()};
-        history.unshift(entry); saveHistory();
-        if(db) pushCheckinToFirebase(entry);
-        rEl.classList.add('valid');
-        icon.textContent='✅'; name.textContent=res.name;
-        msg.textContent='¡Bienvenido/a! (validado por QR)';
-        vibrate(); renderRecent(); renderDashboard();
-      }
-    } else {
-      rEl.classList.add('invalid');
-      icon.textContent='❌'; name.textContent=res.name||'Desconocido';
-      msg.textContent='Ticket no encontrado en la lista.';
-    }
-    return;
-  }
-
-  if(att.checkedIn){
+  // Buscar en historial (ya ingresó antes?)
+  const yaEntro = history.find(h=>h.id===res.id);
+  if(yaEntro){
     rEl.classList.add('dup');
-    icon.textContent='⚠️'; name.textContent=att.name;
-    msg.textContent='Ya ingresó a las '+fmtTime(att.checkInTime);
-    return;
+    icon.textContent='⚠️'; sName.textContent=res.name;
+    msg.textContent='Ya ingresó a las '+fmtTime(yaEntro.checkInTime); return;
   }
 
-  // ✅ VÁLIDO — registrar entrada
-  att.checkedIn=true; att.checkInTime=Date.now();
-  const entry={id:att.id,name:att.name,ticketNum:att.ticketNum,checkInTime:att.checkInTime};
-  history.unshift(entry);
-  saveLocal(); saveHistory();
+  const att = attendees.find(a=>a.id===res.id);
 
-  // Sync a Firebase
+  if(!att && attendees.length>0){
+    rEl.classList.add('invalid');
+    icon.textContent='❌'; sName.textContent=res.name||'Desconocido';
+    msg.textContent='Ticket no encontrado en la lista.'; return;
+  }
+
+  // ✅ VÁLIDO
+  const entry = {
+    id:          res.id,
+    name:        att ? att.name : res.name,
+    ticketNum:   att ? att.ticketNum : '—',
+    checkInTime: Date.now()
+  };
+
+  // Actualizar Firebase
   if(db){
-    const eventPath=EVENT_KEY.toLowerCase().replace(/_/g,'-');
-    db.ref(eventPath+'/attendees/'+att.id).update({checkedIn:true,checkInTime:att.checkInTime}).catch(()=>{});
-    pushCheckinToFirebase(entry);
+    if(att) db.ref(EVENT_PATH+'/attendees/'+att.id).update({checkedIn:true,checkInTime:entry.checkInTime});
+    db.ref(EVENT_PATH+'/checkins').push(entry);
+  } else {
+    // Sin Firebase: guardar local
+    if(att){ att.checkedIn=true; att.checkInTime=entry.checkInTime; saveLocal(); }
+    history.unshift(entry); saveHistory();
+    renderDashboard(); renderRecent();
   }
 
   rEl.classList.add('valid');
-  icon.textContent='✅'; name.textContent=att.name;
-  msg.textContent='¡Bienvenido/a! — Ticket #'+att.ticketNum;
-  vibrate(); renderRecent(); renderDashboard();
+  icon.textContent='✅'; sName.textContent=entry.name;
+  msg.textContent='¡Bienvenido/a! — Ticket #'+entry.ticketNum;
+  vibrate();
 }
 
-function vibrate(){if(navigator.vibrate)navigator.vibrate([80,40,80]);}
+function vibrate(){ if(navigator.vibrate) navigator.vibrate([80,40,80]); }
 
 // ══════════════════════════════════════════════
 // INIT
@@ -959,13 +749,8 @@ if(attendees.length){
   document.getElementById('count-num').textContent=attendees.length;
   document.getElementById('load-result').style.display='block';
 }
-renderList();
-renderDashboard();
+renderList(); renderDashboard();
 initFirebase();
 </script>
-
-<!-- qrcodejs para generar QR en los tickets PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 </body>
 </html>
